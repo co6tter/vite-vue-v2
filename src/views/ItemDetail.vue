@@ -43,54 +43,96 @@
               >
                 {{ item.status }}
               </span>
-              <button
-                v-if="item.status !== 'Done'"
-                @click="approveItem"
-                :disabled="isUpdatingStatus"
-                class="px-4 py-2 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {{ isUpdatingStatus ? "処理中..." : "承認" }}
-              </button>
+              <!-- ToDo状態の場合 -->
+              <div v-if="item.status === 'ToDo'" class="flex gap-2">
+                <button
+                  @click="updateItemStatus(item.id, 'In progress')"
+                  :disabled="isUpdatingStatus"
+                  class="px-3 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {{ isUpdatingStatus ? "処理中..." : "進行中にする" }}
+                </button>
+                <button
+                  @click="updateItemStatus(item.id, 'Done')"
+                  :disabled="isUpdatingStatus"
+                  class="px-3 py-2 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {{ isUpdatingStatus ? "処理中..." : "完了にする" }}
+                </button>
+              </div>
+
+              <!-- In progress状態の場合 -->
+              <div v-else-if="item.status === 'In progress'" class="flex gap-2">
+                <button
+                  @click="updateItemStatus(item.id, 'ToDo')"
+                  :disabled="isUpdatingStatus"
+                  class="px-3 py-2 bg-gray-500 text-white text-sm font-medium rounded-md hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {{ isUpdatingStatus ? "処理中..." : "未着手に戻す" }}
+                </button>
+                <button
+                  @click="updateItemStatus(item.id, 'Done')"
+                  :disabled="isUpdatingStatus"
+                  class="px-3 py-2 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {{ isUpdatingStatus ? "処理中..." : "完了にする" }}
+                </button>
+              </div>
+
+              <!-- Done状態の場合 -->
+              <div v-else-if="item.status === 'Done'" class="flex gap-2">
+                <button
+                  @click="updateItemStatus(item.id, 'ToDo')"
+                  :disabled="isUpdatingStatus"
+                  class="px-3 py-2 bg-gray-500 text-white text-sm font-medium rounded-md hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {{ isUpdatingStatus ? "処理中..." : "未着手に戻す" }}
+                </button>
+                <button
+                  @click="updateItemStatus(item.id, 'In progress')"
+                  :disabled="isUpdatingStatus"
+                  class="px-3 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {{ isUpdatingStatus ? "処理中..." : "進行中にする" }}
+                </button>
+              </div>
+              <div class="relative">
+                <div
+                  :class="[
+                    'w-8 h-8 rounded-full border-2 border-gray-200 shadow-md',
+                    item.tag === '' ? 'border-dashed border-gray-400' : '',
+                  ]"
+                  :style="{ backgroundColor: getTagColorHex(item.tag) }"
+                >
+                  <span
+                    v-if="item.tag === ''"
+                    class="flex items-center justify-center h-full text-gray-400 text-xs"
+                    >?</span
+                  >
+                </div>
+                <select
+                  :value="item.tag"
+                  @change="
+                    updateItemTag(
+                      item.id,
+                      ($event.target as HTMLSelectElement).value as TagColor
+                    )
+                  "
+                  class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                >
+                  <option value="">未選択</option>
+                  <option
+                    v-for="tagColor in allTagColors"
+                    :key="tagColor"
+                    :value="tagColor"
+                  >
+                    {{ getColorName(tagColor) }}
+                  </option>
+                </select>
+              </div>
             </div>
           </div>
           <p class="text-lg text-gray-600 mb-4">{{ item.description }}</p>
-
-          <div class="flex items-center gap-3 mb-4">
-            <div class="relative">
-              <div
-                :class="[
-                  'w-8 h-8 rounded-full border-2 border-gray-200 shadow-md',
-                  item.tag === '' ? 'border-dashed border-gray-400' : '',
-                ]"
-                :style="{ backgroundColor: getTagColorHex(item.tag) }"
-              >
-                <span
-                  v-if="item.tag === ''"
-                  class="flex items-center justify-center h-full text-gray-400 text-xs"
-                  >?</span
-                >
-              </div>
-              <select
-                :value="item.tag"
-                @change="
-                  updateItemTag(
-                    item.id,
-                    ($event.target as HTMLSelectElement).value as TagColor
-                  )
-                "
-                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              >
-                <option value="">未選択</option>
-                <option
-                  v-for="tagColor in allTagColors"
-                  :key="tagColor"
-                  :value="tagColor"
-                >
-                  {{ getColorName(tagColor) }}
-                </option>
-              </select>
-            </div>
-          </div>
 
           <div class="text-sm text-gray-500">
             作成日: {{ formatDate(item.createdAt) }}
@@ -113,7 +155,7 @@
           >
             <span class="text-gray-500">←</span>
             <div class="text-left">
-              <div class="text-xs text-gray-500">前の記事</div>
+              <div class="text-xs text-gray-500">前へ</div>
             </div>
           </button>
         </div>
@@ -125,7 +167,7 @@
             class="group flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
           >
             <div class="text-right">
-              <div class="text-xs text-gray-500">次の記事</div>
+              <div class="text-xs text-gray-500">次へ</div>
             </div>
             <span class="text-gray-500">→</span>
           </button>
@@ -247,7 +289,7 @@ const updateItemTag = async (itemId: number, tagColor: TagColor) => {
   }
 };
 
-const approveItem = async () => {
+const updateItemStatus = async (itemId: number, newStatus: Status) => {
   if (!item.value || isUpdatingStatus.value) return;
 
   isUpdatingStatus.value = true;
@@ -255,10 +297,10 @@ const approveItem = async () => {
   try {
     // リアルタイムでUIを更新
     const originalStatus = item.value.status;
-    item.value.status = "Done";
+    item.value.status = newStatus;
 
     // バックグラウンドでAPI更新
-    const updatedItem = await mockApi.updateItemStatus(item.value.id, "Done");
+    const updatedItem = await mockApi.updateItemStatus(itemId, newStatus);
     if (!updatedItem) {
       // APIエラーの場合は元に戻す
       item.value.status = originalStatus;
@@ -266,7 +308,7 @@ const approveItem = async () => {
   } catch (err) {
     console.error("ステータスの更新に失敗しました:", err);
     // エラー時は元の状態に戻す
-    const originalItem = await mockApi.getItemById(item.value.id);
+    const originalItem = await mockApi.getItemById(itemId);
     if (originalItem) {
       item.value = originalItem;
     }

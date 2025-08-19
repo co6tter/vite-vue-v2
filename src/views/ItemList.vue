@@ -2,6 +2,37 @@
   <div class="container mx-auto px-4 py-8">
     <h1 class="text-3xl font-bold text-gray-900 mb-8">アイテム一覧</h1>
 
+    <fieldset
+      class="bg-white rounded-lg p-6 border border-gray-300 mb-8 font-medium text-gray-700"
+    >
+      <section>
+        <h3 class="text-lg font-semibold">説明</h3>
+        <p>連続でタグ付けやステータス更新できる機能です。</p>
+        <p>動きのイメージのプロトタイプです。</p>
+        <p>ステータスは申請状況と考えてください。</p>
+      </section>
+
+      <section class="mt-4">
+        <h3 class="text-lg font-semibold">追加内容</h3>
+        <ul class="list-disc list-inside">
+          <li>
+            承認などのステータス更新後、完了ページに遷移せずに詳細に留まる
+          </li>
+          <li>詳細で前後のアイテムページに遷移できるようにする</li>
+        </ul>
+      </section>
+
+      <section class="mt-4">
+        <h3 class="text-lg font-semibold">フロー</h3>
+        <ol class="list-decimal list-inside">
+          <li>ステータスやタグで一覧を絞り込む</li>
+          <li>アイテムをクリックして詳細ページに遷移する</li>
+          <li>タグ付けやステータス変更を行う</li>
+          <li>前後のアイテムに遷移する</li>
+        </ol>
+      </section>
+    </fieldset>
+
     <div class="mb-6">
       <div class="bg-white rounded-lg shadow-md p-6">
         <div class="flex gap-4 mb-4">
@@ -95,47 +126,46 @@
             <h2 class="text-xl font-semibold text-gray-900">
               {{ item.title }}
             </h2>
-            <span
-              :class="[
-                'px-2 py-1 text-xs font-medium rounded-full',
-                getStatusColor(item.status),
-              ]"
-            >
-              {{ item.status }}
-            </span>
-          </div>
-          <p class="text-gray-600 mb-4">{{ item.description }}</p>
-
-          <div class="flex items-center gap-2 mb-3">
-            <div class="relative">
-              <div
+            <div class="flex items-center gap-2">
+              <span
                 :class="[
-                  'w-6 h-6 rounded-full border-2 border-gray-200 shadow-sm',
+                  'px-2 py-1 text-xs font-medium rounded-full',
+                  getStatusColor(item.status),
                 ]"
-                :style="{ backgroundColor: getTagColorHex(item.tag) }"
-              ></div>
-              <select
-                :value="item.tag"
-                @change="
-                  updateItemTag(
-                    item.id,
-                    ($event.target as HTMLSelectElement).value as TagColor
-                  )
-                "
-                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                @click.stop
               >
-                <option value="">未選択</option>
-                <option
-                  v-for="tagColor in allTagColors"
-                  :key="tagColor"
-                  :value="tagColor"
+                {{ item.status }}
+              </span>
+              <div class="relative">
+                <div
+                  :class="[
+                    'w-6 h-6 rounded-full border-2 border-gray-200 shadow-sm',
+                  ]"
+                  :style="{ backgroundColor: getTagColorHex(item.tag) }"
+                ></div>
+                <select
+                  :value="item.tag"
+                  @change="
+                    updateItemTag(
+                      item.id,
+                      ($event.target as HTMLSelectElement).value as TagColor
+                    )
+                  "
+                  class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  @click.stop
                 >
-                  {{ getColorName(tagColor) }}
-                </option>
-              </select>
+                  <option value="">未選択</option>
+                  <option
+                    v-for="tagColor in allTagColors"
+                    :key="tagColor"
+                    :value="tagColor"
+                  >
+                    {{ getColorName(tagColor) }}
+                  </option>
+                </select>
+              </div>
             </div>
           </div>
+          <p class="text-gray-600 mb-4">{{ item.description }}</p>
 
           <div class="text-sm text-gray-500">
             作成日: {{ formatDate(item.createdAt) }}
