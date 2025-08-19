@@ -60,9 +60,16 @@
               <div
                 :class="[
                   'w-8 h-8 rounded-full border-2 border-gray-200 shadow-md',
+                  item.tag === '' ? 'border-dashed border-gray-400' : '',
                 ]"
                 :style="{ backgroundColor: getTagColorHex(item.tag) }"
-              ></div>
+              >
+                <span
+                  v-if="item.tag === ''"
+                  class="flex items-center justify-center h-full text-gray-400 text-xs"
+                  >?</span
+                >
+              </div>
               <select
                 :value="item.tag"
                 @change="
@@ -73,6 +80,7 @@
                 "
                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               >
+                <option value="">未選択</option>
                 <option
                   v-for="tagColor in allTagColors"
                   :key="tagColor"
@@ -149,7 +157,7 @@ const searchResultIds = ref<number[]>([]);
 const allTagColors = ref<TagColor[]>([]);
 const isUpdatingStatus = ref(false);
 
-const fetchItem = async (id: number) => {
+const fetchItem = async (id: number, shouldRefreshSearch = false) => {
   loading.value = true;
   error.value = undefined;
 
@@ -163,8 +171,10 @@ const fetchItem = async (id: number) => {
 
     item.value = itemData;
 
-    // 現在の検索条件でフィルタリングされた結果を再取得
-    await refreshSearchResults();
+    // 初回読み込み時またはshouldRefreshSearchがtrueの場合のみ検索結果を再取得
+    if (shouldRefreshSearch) {
+      await refreshSearchResults();
+    }
 
     // 前後のアイテムを取得
     const filteredIds =
@@ -326,8 +336,10 @@ const getTagColorHex = (tagColor: TagColor) => {
       return "#6366f1";
     case "gray":
       return "#6b7280";
+    case "":
+      return "#ffffff";
     default:
-      return "#6b7280";
+      return "#ffffff";
   }
 };
 
@@ -356,7 +368,7 @@ const getColorName = (tagColor: TagColor) => {
 
 watch(
   () => [route.params.id, route.query.searchIds],
-  ([newId, newSearchIds]) => {
+  ([newId, newSearchIds], oldValues) => {
     if (newSearchIds && typeof newSearchIds === "string") {
       searchResultIds.value = newSearchIds
         .split(",")
@@ -369,7 +381,10 @@ watch(
     if (newId) {
       const id = parseInt(newId as string, 10);
       if (!isNaN(id)) {
-        fetchItem(id);
+        // 検索条件が変更された場合のみshouldRefreshSearchをtrueにする
+        const oldSearchIds = oldValues?.[1];
+        const shouldRefreshSearch = newSearchIds !== oldSearchIds;
+        fetchItem(id, shouldRefreshSearch);
       } else {
         error.value = "無効なIDです";
       }
@@ -390,7 +405,7 @@ onMounted(async () => {
 
   const id = parseInt(route.params.id as string, 10);
   if (!isNaN(id)) {
-    fetchItem(id);
+    fetchItem(id, true);
   } else {
     error.value = "無効なIDです";
   }
