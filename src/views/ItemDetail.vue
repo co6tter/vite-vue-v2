@@ -34,14 +34,24 @@
             <h1 class="text-3xl font-bold text-gray-900">
               {{ item.title }}
             </h1>
-            <span
-              :class="[
-                'px-3 py-1 text-sm font-medium rounded-full',
-                getStatusColor(item.status),
-              ]"
-            >
-              {{ item.status }}
-            </span>
+            <div class="flex items-center gap-3">
+              <span
+                :class="[
+                  'px-3 py-1 text-sm font-medium rounded-full',
+                  getStatusColor(item.status),
+                ]"
+              >
+                {{ item.status }}
+              </span>
+              <button
+                v-if="item.status !== 'Done'"
+                @click="approveItem"
+                :disabled="isUpdatingStatus"
+                class="px-4 py-2 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {{ isUpdatingStatus ? "処理中..." : "承認" }}
+              </button>
+            </div>
           </div>
           <p class="text-lg text-gray-600 mb-4">{{ item.description }}</p>
 
@@ -96,11 +106,6 @@
             <span class="text-gray-500">←</span>
             <div class="text-left">
               <div class="text-xs text-gray-500">前の記事</div>
-              <div
-                class="text-sm font-medium text-gray-900 group-hover:text-blue-600"
-              >
-                {{ truncateTitle(prevItem.title) }}
-              </div>
             </div>
           </button>
         </div>
@@ -113,11 +118,6 @@
           >
             <div class="text-right">
               <div class="text-xs text-gray-500">次の記事</div>
-              <div
-                class="text-sm font-medium text-gray-900 group-hover:text-blue-600"
-              >
-                {{ truncateTitle(nextItem.title) }}
-              </div>
             </div>
             <span class="text-gray-500">→</span>
           </button>
@@ -147,6 +147,7 @@ const loading = ref(false);
 const error = ref<string | undefined>(undefined);
 const searchResultIds = ref<number[]>([]);
 const allTagColors = ref<TagColor[]>([]);
+const isUpdatingStatus = ref(false);
 
 const fetchItem = async (id: number) => {
   loading.value = true;
@@ -233,6 +234,34 @@ const updateItemTag = async (itemId: number, tagColor: TagColor) => {
     if (originalItem) {
       item.value = originalItem;
     }
+  }
+};
+
+const approveItem = async () => {
+  if (!item.value || isUpdatingStatus.value) return;
+
+  isUpdatingStatus.value = true;
+
+  try {
+    // リアルタイムでUIを更新
+    const originalStatus = item.value.status;
+    item.value.status = "Done";
+
+    // バックグラウンドでAPI更新
+    const updatedItem = await mockApi.updateItemStatus(item.value.id, "Done");
+    if (!updatedItem) {
+      // APIエラーの場合は元に戻す
+      item.value.status = originalStatus;
+    }
+  } catch (err) {
+    console.error("ステータスの更新に失敗しました:", err);
+    // エラー時は元の状態に戻す
+    const originalItem = await mockApi.getItemById(item.value.id);
+    if (originalItem) {
+      item.value = originalItem;
+    }
+  } finally {
+    isUpdatingStatus.value = false;
   }
 };
 

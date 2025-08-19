@@ -191,4 +191,23 @@ export const mockApi = {
     mockItems[itemIndex].tag = tagColor;
     return mockItems[itemIndex];
   },
+
+  async updateItemStatus(
+    itemId: number,
+    status: Status
+  ): Promise<Item | undefined> {
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    const itemIndex = mockItems.findIndex((item) => item.id === itemId);
+    if (itemIndex === -1) {
+      return undefined;
+    }
+
+    if (!statuses.includes(status)) {
+      return undefined;
+    }
+
+    mockItems[itemIndex].status = status;
+    return mockItems[itemIndex];
+  },
 };
