@@ -8,7 +8,8 @@ export type TagColor =
   | "purple"
   | "pink"
   | "indigo"
-  | "gray";
+  | "gray"
+  | "";
 
 export interface Item {
   id: number;
@@ -65,7 +66,7 @@ const generateMockItems = (count: number): Item[] => {
         index + 1
       }の詳細なコンテンツです。ここに長い説明や詳細な情報が含まれます。実際のアプリケーションでは、ここにリッチなコンテンツが表示されるでしょう。`,
       status: statuses[index % 3], // ステータスをランダムに割り当て
-      tag: selectedTagColor,
+      tag: "",
       createdAt: new Date(
         Date.now() - Math.random() * 10000000000
       ).toISOString(),
@@ -184,7 +185,7 @@ export const mockApi = {
       return undefined;
     }
 
-    if (!availableTagColors.includes(tagColor)) {
+    if (tagColor !== "" && !availableTagColors.includes(tagColor)) {
       return undefined;
     }
 

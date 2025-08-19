@@ -125,6 +125,7 @@
                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 @click.stop
               >
+                <option value="">未選択</option>
                 <option
                   v-for="tagColor in allTagColors"
                   :key="tagColor"
@@ -393,8 +394,10 @@ const getTagColorHex = (tagColor: TagColor) => {
       return "#6366f1";
     case "gray":
       return "#6b7280";
+    case "":
+      return "#ffffff";
     default:
-      return "#6b7280";
+      return "#ffffff";
   }
 };
 
