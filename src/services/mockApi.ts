@@ -52,10 +52,6 @@ const availableTagColors: TagColor[] = [
 
 const generateMockItems = (count: number): Item[] => {
   return Array.from({ length: count }, (_, index) => {
-    // ランダムに1つの色を選択
-    const selectedTagColor =
-      availableTagColors[index % availableTagColors.length];
-
     return {
       id: index + 1,
       title: `アイテム ${index + 1}`,
