@@ -295,10 +295,6 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString("ja-JP");
 };
 
-const truncateTitle = (title: string, maxLength: number = 20) => {
-  return title.length > maxLength ? title.slice(0, maxLength) + "..." : title;
-};
-
 const getStatusColor = (status: Status) => {
   switch (status) {
     case "ToDo":
